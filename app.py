@@ -5,18 +5,16 @@ app = Flask(__name__)
 
 @app.route('/login', methods=['GET'])
 def login():
-    # 1. SOURCE (GİRİŞ NOKTASI): CodeQL burayı dışarıdan gelen tehlikeli veri olarak işaretler.
     kullanici_adi = request.args.get('username')
-    
+
     conn = sqlite3.connect('siber_test.db')
     cursor = conn.cursor()
-    
-    # 2. DATA FLOW (AKIŞ): Kirli veri hiçbir kontrolden geçmeden SQL stringiyle birleşiyor.
-    sorgu = "SELECT * FROM users WHERE username = '" + kullanici_adi + "'"
-    
-    # 3. SINK (ÇIKIŞ NOKTASI): CodeQL burayı görür ve "Kritik Zafiyet" alarmını tetikler!
-    cursor.execute(sorgu)
-    
+
+    # GÜVENLİ KOD: Veri, string birleştirmesi yerine tuple olarak (?) parametre ile gönderiliyor.
+    # Bu sayede SQL Injection (CWE-89) tamamen engellenmiş olur!
+    sorgu = "SELECT * FROM users WHERE username = ?"
+    cursor.execute(sorgu, (kullanici_adi,))
+
     user = cursor.fetchone()
     if user:
         return "Giriş Başarılı"
